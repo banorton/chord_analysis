@@ -1,0 +1,28 @@
+SYSTEM DESIGN: CHORD ANALYSIS
+
+Classes:
+  Piano: Can generate Chord objects and find notes.
+    Dict keys: (e.g. 010: A0, 020: Bb0, 401: C4, 507: G5)
+    Dict freq: frequencies of notes (in the future)
+    func: get_name(int) -> str (e.g. 511 -> 'G5')
+    func: get_num(str) -> int (e.g. 'G5' -> 511)
+    func: get_letter(int) -> str
+    func: get_rel_num(str) -> int
+
+  Chord: Stores info about an input chord
+    List[str] structure: structure of chord (e.g. 1 b3 5 b7)
+    str root: Root note
+    List[str] names: Possible names
+
+  Chord_Analyzer: Takes chord objects and calculates information about them
+    func: chord_interp(Chord chord) -> str
+    func: chord_contexts(Chord chord) -> List[List[str]] (in the future)
+    func: chord_voicings(Chord chord) -> List[List[str]] (in the future)
+
+  Key: Notes will have 2 properties: name ("C4"), num (401). Notes will have 3 sub-properties: letter ("C"), rel_num (01), octave (4). 
+       (num%100 = general_num, num//100 = octave) (1-12 -> C - B)
+    int num
+    str name
+    int rel_num
+    int octave
+    str letter
