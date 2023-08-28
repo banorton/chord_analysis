@@ -1,4 +1,3 @@
-# TODO: Make a "Musical" class that all things inherit from. Contains conversions and similar functions.
 # TODO: Make a chord complexity system and make it so interpretation uses simplest complexity
 # TODO: In chord analysis, determine 3 and 7 to get tonality, then determine addtitions, then determine alterations.
 
@@ -24,13 +23,13 @@ class Musical:
 
     def get_relnum(self, letter, root='C'):
         if root == 'C':
-            return Piano.RELNUMS[letter]
+            return self.RELNUMS[letter]
         else:
-            shift_num = 13 - Piano.RELNUMS[root]
-            if Piano.RELNUMS[letter] + shift_num > 12:
-                return (Piano.RELNUMS[letter] + shift_num) % 13 + 1
+            shift_num = 13 - self.RELNUMS[root]
+            if self.RELNUMS[letter] + shift_num > 12:
+                return (self.RELNUMS[letter] + shift_num) % 13 + 1
             else:
-                return Piano.RELNUMS[letter] + shift_num
+                return self.RELNUMS[letter] + shift_num
 
     def get_letter(self, relnum):
         return self.LETTERS[relnum]
@@ -40,7 +39,7 @@ class Musical:
         rootnums = []
         for letter in letters:
             try:
-                rootnum = Piano.ROOTNUMS[self.get_relnum(letter, root)]
+                rootnum = self.ROOTNUMS[self.get_relnum(letter, root)]
             except:
                 print()
             rootnums.append(rootnum)
@@ -111,20 +110,47 @@ class Chord(Musical):
 
     def find_type(self):
         notes_set = set(self.notes)
-        if (set("1 b3 b7".split()).issubset(notes_set)) and not ("b5" in notes_set):
-            self.type = "m7"
-        elif (set("1 b3 b5 b7".split()).issubset(notes_set)):
-            self.type = "m7(b5)"
-        elif (set("1 3 5 b7".split()).issubset(notes_set)):
-            self.type = "7"
-        elif (set("1 3 5 7".split()).issubset(notes_set)):
-            self.type = "M7"
-        elif (set("1 b3 5 7".split()).issubset(notes_set)):
-            self.type = "mM7"
+        type_str = ""
+        if set("1 3 5".split()).issubset(notes_set):
+            # M7
+            if "7" in notes_set:
+                type_str = "M7"
+            # dom7
+            elif "b7" in notes_set:
+                type_str = "7"
+            # C6
+            elif "6" in notes_set:
+                type_str = "6"
+            # M
+            else:
+                type_str = "M"
+        elif set("1 b3 5".split()).issubset(notes_set):
+            # m7
+            if "b7" in notes_set:
+                type_str = "M7"
+            # dom7
+            elif "7" in notes_set:
+                type_str = "mM7"
+            # m
+            else:
+                type_str = "m"
+        elif set("1 b3 b5".split()).issubset(notes_set):
+            # m7
+            if "bb7" in notes_set or "6" in notes_set:
+                type_str = "dim7"
+            # dom7
+            elif "b7" in notes_set:
+                type_str = "m7b5"
+            elif "7" in notes_set:
+                type_str = "dimM7"
+            # dim
+            else:
+                type_str = "dim"
+        self.type = type_str
 
 
 if __name__ == '__main__':
-    chord = Chord("A C E G")
+    chord = Chord("E C E G")
     print(chord.notes)
     print(chord.root)
     print(chord.type)
