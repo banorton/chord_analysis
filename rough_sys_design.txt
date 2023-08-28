@@ -26,3 +26,23 @@ Classes:
     int rel_num
     int octave
     str letter
+
+    Chord construction
+    name        ["C4", "Eb4", "G4", "Bb4"]
+    num         [401, 404, 408, 411]
+    relpos      [1, b3, 5, b7] or "1 b3 5 b7"
+    letters     ["C", "Eb", "G", "Bb"] or "C Eb G Bb"
+    chord_name  "Cmin7"
+
+    m7 -> b3 b7 nob5
+    M7 -> 3 7
+    7 -> 3 b7
+    mM7 -> b3 7
+    dim7 -> b3 bb7 or b3 6
+    m7(b5) -> b3 b5 b7
+
+    m9 -> b3 b7 nob5 9
+    m11 -> b3 b7 nob5 11
+    m13 -> b3 b7 nob5 13
+    7sus4 -> 3 b7 4 no3
+    7sus2 -> 3 b7 2 no3
