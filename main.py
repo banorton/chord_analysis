@@ -17,6 +17,28 @@ class Key:
         self.name = self.letter + str(self.octave)
 
 
+class Chord:
+    def __init__(self, notes, root="C"):
+        self.type = None
+        self.root = root
+        if not notes:
+            raise Exception('Chord must contain notes.')
+        elif not isinstance(notes, str):
+            raise Exception(
+                'Input for the chord constructor must be a string (e.g. "1 b3 5 b7")')
+        elif len(notes.split()) > 88:
+            raise Exception('Too many notes.')
+        else:
+            self.notes = notes.split()
+            self._find_type()
+        self.name = self.root + self.type
+
+    def _find_type(self):
+        notes_set = set(self.notes)
+        if set("1 b3 b7".split()).issubset(notes_set):
+            self.type = "min7"
+
+
 class Piano:
     _LETTERS = ("", "C", "Db", "D", "Eb", "E", "F",
                 "Gb", "G", "Ab", "A", "Bb", "B")
@@ -65,3 +87,5 @@ class Piano:
 
 if __name__ == '__main__':
     piano = Piano()
+    chord = Chord("1 b3 5 b7")
+    print(chord.name)
