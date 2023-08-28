@@ -98,18 +98,18 @@ class Chord(Musical):
             raise Exception('Too many notes.')
         elif any(map(str.isdigit, notes)):
             self.notes = notes.split()
-            self.find_type()
+            self.find_type(self.notes)
         else:
             letters = notes.split()
             self.notes = self.letters_to_rootnums(letters, letters[0])
-            self.find_type()
+            self.find_type(self.notes)
         try:
             self.name = self.root + self.type
         except:
             pass
 
-    def find_type(self):
-        notes_set = set(self.notes)
+    def find_type(self, notes):
+        notes_set = set(notes)
         type_str = ""
         if set("1 3 5".split()).issubset(notes_set):
             # M7
@@ -150,7 +150,7 @@ class Chord(Musical):
 
 
 if __name__ == '__main__':
-    chord = Chord("E C E G")
+    chord = Chord("E Ab B Eb")
     print(chord.notes)
     print(chord.root)
     print(chord.type)
