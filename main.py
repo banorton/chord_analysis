@@ -1,12 +1,9 @@
-# TODO: Make a chord complexity system and make it so interpretation uses simplest complexity
-# TODO: In chord analysis, determine 3 and 7 to get tonality, then determine addtitions, then determine alterations.
-
 class Musical:
     LETTERS = ("", "C", "Db", "D", "Eb", "E", "F",
                "Gb", "G", "Ab", "A", "Bb", "B")
     RELNUMS = {"C": 1, "Db": 2, "D": 3, "Eb": 4, "E": 5, "F": 6,
                "Gb": 7, "G": 8, "Ab": 9, "A": 10, "Bb": 11, "B": 12}
-    ROOTNUMS = ("", "1", "b9", "2", "b3", "3", "4",
+    ROOTNUMS = ("", "1", "b2", "2", "b3", "3", "4",
                 "b5", "5", "b6", "6", "b7", "7")
 
     def name_split(self, name):
@@ -37,13 +34,122 @@ class Musical:
     def letters_to_rootnums(self, letters, root):
         self.root = root
         rootnums = []
+        has7 = False
         for letter in letters:
-            try:
-                rootnum = self.ROOTNUMS[self.get_relnum(letter, root)]
-            except:
-                print()
+            rootnum = self.ROOTNUMS[self.get_relnum(letter, root)]
+            if rootnum in {"7", "b7"}:
+                has7 = True
             rootnums.append(rootnum)
+
+        if has7:
+            for i, rootnum in enumerate(rootnums):
+                if rootnum == "2":
+                    rootnums[i] = "9"
+                if rootnum == "b2":
+                    rootnums[i] = "b9"
+                if rootnum == "4":
+                    rootnums[i] = "11"
+                if rootnum == "6":
+                    rootnums[i] = "13"
+                if rootnum == "b6":
+                    rootnums[i] = "b13"
+            print(rootnums)
         return rootnums
+
+
+class Chord(Musical):
+    def __init__(self, notes, root="C"):
+        self.type = None
+        self.root = root
+        self.names = []
+        if not notes:
+            raise Exception('Chord must contain notes.')
+        elif not isinstance(notes, str):
+            raise Exception(
+                'Input for the chord constructor must be a string (e.g. "1 b3 5 b7")')
+        elif len(notes.split()) > 88:
+            raise Exception('Too many notes.')
+        elif any(map(str.isdigit, notes)):
+            self.notes = notes.split()
+            # self.names = self.find_names(self.notes)
+            self.type = self.find_type(self.notes)
+        else:
+            letters = notes.split()
+            self.notes = self.letters_to_rootnums(letters, letters[0])
+            # self.names = self.find_names(letters)
+            self.type = self.find_type(self.notes)
+
+    def find_names(self, notes):
+        rootnums = []
+        for root in self.LETTERS[1:]:
+            rootnum = self.letters_to_rootnums(notes, root)
+            if "1" in set(rootnum):
+                rootnums.append(rootnums)
+
+        names = []
+        for notes in rootnums:
+            names.append(self.find_type(notes))
+        return names
+
+    def find_type(self, notes):
+        try:
+            notes_set = set(notes)
+            print(notes)
+        except:
+            raise Exception("Notes not valid.")
+        type = ""
+        extensions = []
+
+        # No7
+        if not (("7" in notes_set) or ("b7" in notes_set)):
+            # maj
+            if set("1 3 5".split()).issubset(notes_set):
+                type = "maj"
+            # min
+            elif set("1 b3 5".split()).issubset(notes_set):
+                type = "min"
+            # dim
+            elif set("1 b3 b5".split()).issubset(notes_set) and not ("5" in notes_set) and not ("6" in notes_set):
+                type = "dim"
+            # dim
+            elif set("1 b3 #11".split()).issubset(notes_set) and not ("5" in notes_set) and not ("6" in notes_set):
+                type = "dim"
+            # aug
+            elif set("1 3 #5".split()).issubset(notes_set) and not ("5" in notes_set):
+                type = "aug"
+            # aug
+            elif set("1 3 b6".split()).issubset(notes_set) and not ("5" in notes_set):
+                type = "aug"
+            # sus2
+            elif set("1 2 5".split()).issubset(notes_set) and not ("3" in notes_set) and not ("b3" in notes_set):
+                type = "sus2"
+            # sus4
+            elif set("1 4 5".split()).issubset(notes_set) and not ("3" in notes_set) and not ("b3" in notes_set):
+                type = "sus4"
+
+        # 7th chords
+        else:
+            # maj7
+            if set("1 3 5 7".split()).issubset(notes_set):
+                type = "maj7"
+            # min7
+            elif set("1 b3 5 b7".split()).issubset(notes_set):
+                type = "min7"
+            # dim7
+            elif set("1 b3 b5 6".split()).issubset(notes_set):
+                type = "dim7"
+            # min7(b5)
+            elif set("1 b3 b5 b7".split()).issubset(notes_set):
+                type = "min7"
+                extensions.append("b5")
+
+            if "13" in notes_set:
+                type = type[:-1] + "13"
+            elif "11" in notes_set:
+                type = type[:-1] + "11"
+            elif "9" in notes_set:
+                type = type[:-1] + "9"
+        return [type, extensions]
 
 
 class Key(Musical):
@@ -84,74 +190,13 @@ class Piano(Musical):
         self.keys[801] = Key(801)
 
 
-class Chord(Musical):
-    def __init__(self, notes, root="C"):
-        self.type = None
-        self.root = root
-        self.name = ""
-        if not notes:
-            raise Exception('Chord must contain notes.')
-        elif not isinstance(notes, str):
-            raise Exception(
-                'Input for the chord constructor must be a string (e.g. "1 b3 5 b7")')
-        elif len(notes.split()) > 88:
-            raise Exception('Too many notes.')
-        elif any(map(str.isdigit, notes)):
-            self.notes = notes.split()
-            self.find_type(self.notes)
-        else:
-            letters = notes.split()
-            self.notes = self.letters_to_rootnums(letters, letters[0])
-            self.find_type(self.notes)
-        try:
-            self.name = self.root + self.type
-        except:
-            pass
-
-    def find_type(self, notes):
-        notes_set = set(notes)
-        type_str = ""
-        if set("1 3 5".split()).issubset(notes_set):
-            # M7
-            if "7" in notes_set:
-                type_str = "M7"
-            # dom7
-            elif "b7" in notes_set:
-                type_str = "7"
-            # C6
-            elif "6" in notes_set:
-                type_str = "6"
-            # M
-            else:
-                type_str = "M"
-        elif set("1 b3 5".split()).issubset(notes_set):
-            # m7
-            if "b7" in notes_set:
-                type_str = "M7"
-            # dom7
-            elif "7" in notes_set:
-                type_str = "mM7"
-            # m
-            else:
-                type_str = "m"
-        elif set("1 b3 b5".split()).issubset(notes_set):
-            # m7
-            if "bb7" in notes_set or "6" in notes_set:
-                type_str = "dim7"
-            # dom7
-            elif "b7" in notes_set:
-                type_str = "m7b5"
-            elif "7" in notes_set:
-                type_str = "dimM7"
-            # dim
-            else:
-                type_str = "dim"
-        self.type = type_str
-
-
 if __name__ == '__main__':
-    chord = Chord("E Ab B Eb")
+    chord = Chord("B D C E G")
     print(chord.notes)
     print(chord.root)
     print(chord.type)
-    print(chord.name)
+    print(chord.names)
+    if chord.type[1]:
+        print(chord.root + chord.type[0] + "(" + ''.join(chord.type[1]) + ")")
+    else:
+        print(chord.root + chord.type[0])
