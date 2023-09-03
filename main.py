@@ -53,7 +53,6 @@ class Musical:
                     rootnums[i] = "13"
                 if rootnum == "b6":
                     rootnums[i] = "b13"
-            print(rootnums)
         return rootnums
 
 
@@ -81,7 +80,8 @@ class Chord(Musical):
 
     def find_names(self, notes):
         rootnums = []
-        for root in self.LETTERS[1:]:
+        roots = notes.copy()
+        for root in roots:
             rootnum = self.letters_to_rootnums(notes, root)
             if "1" in set(rootnum):
                 rootnums.append(rootnums)
@@ -94,7 +94,6 @@ class Chord(Musical):
     def find_type(self, notes):
         try:
             notes_set = set(notes)
-            print(notes)
         except:
             raise Exception("Notes not valid.")
         type = ""
@@ -191,7 +190,7 @@ class Piano(Musical):
 
 
 if __name__ == '__main__':
-    chord = Chord("B D C E G")
+    chord = Chord("C Eb Gb Bb")
     print(chord.notes)
     print(chord.root)
     print(chord.type)
