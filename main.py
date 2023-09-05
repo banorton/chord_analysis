@@ -1,14 +1,42 @@
+class Chord_Name:
+    def __init__(
+        self,
+        type="",
+        extensions="",
+        slash="",
+        suspensions="",
+        additions=[],
+        alterations=[],
+    ):
+        self.type = type
+        self.extensions = extensions
+        self.slash = slash
+        self.suspensions = suspensions
+        self.additions = additions
+        self.alterations = alterations
+
+
 class Musical:
-    LETTERS = ("", "C", "Db", "D", "Eb", "E", "F",
-               "Gb", "G", "Ab", "A", "Bb", "B")
-    RELNUMS = {"C": 1, "Db": 2, "D": 3, "Eb": 4, "E": 5, "F": 6,
-               "Gb": 7, "G": 8, "Ab": 9, "A": 10, "Bb": 11, "B": 12}
-    ROOTNUMS = ("", "1", "b2", "2", "b3", "3", "4",
-                "b5", "5", "b6", "6", "b7", "7")
+    LETTERS = ("", "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B")
+    RELNUMS = {
+        "C": 1,
+        "Db": 2,
+        "D": 3,
+        "Eb": 4,
+        "E": 5,
+        "F": 6,
+        "Gb": 7,
+        "G": 8,
+        "Ab": 9,
+        "A": 10,
+        "Bb": 11,
+        "B": 12,
+    }
+    ROOTNUMS = ("", "1", "b2", "2", "b3", "3", "4", "b5", "5", "b6", "6", "b7", "7")
 
     def name_split(self, name):
-        letter = name.rstrip('0123456789')
-        octave = name[len(letter):]
+        letter = name.rstrip("0123456789")
+        octave = name[len(letter) :]
         return letter, int(octave)
 
     def get_name(self, num):
@@ -18,8 +46,8 @@ class Musical:
         letter, octave = self.name_split(name)
         return int(octave * 100) + int(self.RELNUMS[letter])
 
-    def get_relnum(self, letter, root='C'):
-        if root == 'C':
+    def get_relnum(self, letter, root="C"):
+        if root == "C":
             return self.RELNUMS[letter]
         else:
             shift_num = 13 - self.RELNUMS[root]
@@ -61,20 +89,21 @@ class Chord(Musical):
         self.root = root
         self.names = []
         if not notes:
-            raise Exception('Chord must contain notes.')
+            raise Exception("Chord must contain notes.")
         elif not isinstance(notes, str):
             raise Exception(
-                'Input for the chord constructor must be a string (e.g. "1 b3 5 b7")')
+                'Input for the chord constructor must be a string (e.g. "1 b3 5 b7")'
+            )
         elif len(notes.split()) > 88:
-            raise Exception('Too many notes.')
+            raise Exception("Too many notes.")
         elif any(map(str.isdigit, notes)):
             self.notes = notes.split()
-            self.type = self.find_type(self.notes)
+            self.type = self.find_name(self.notes)
             self.names = self.find_names(self.notes)
         else:
             letters = notes.split()
             self.notes = self.letters_to_rootnums(letters, letters[0])
-            self.type = self.find_type(self.notes)
+            self.type = self.find_name(self.notes)
             self.names = self.find_names(letters)
 
     def find_names(self, notes):
@@ -87,111 +116,104 @@ class Chord(Musical):
 
         names = []
         for i, chord in enumerate(chords):
-            type = self.find_type(chord)
+            name = self.find_name(chord)
             if i != 0:
-                slash_chord = "/" + str(self.root)
-            else:
-                slash_chord = ""
+                name.slash = "/" + str(self.root)
 
-            if type[1]:
-                name_str = roots[i] + type[0] + \
-                    "(" + ''.join(type[1]) + ")" + slash_chord
+            if name.alterations:
+                name_str = (
+                    roots[i]
+                    + name.type
+                    + name.extensions
+                    + name.slash
+                    + "("
+                    + "".join(name.alterations)
+                    + ")"
+                )
             else:
-                name_str = roots[i] + type[0] + slash_chord
+                name_str = roots[i] + name.type + name.extensions + name.slash
             names.append(name_str)
         return names
 
-    def find_type(self, notes):
+    def find_name(self, notes):
         try:
             notes_set = set(notes)
         except:
             raise Exception("Notes not valid.")
-        type = ""
-        extensions = []
+        if len(notes_set) == 1:
+            return Chord_Name(type=notes[0])
 
-        # No7
-        if not (("7" in notes_set) or ("b7" in notes_set)):
-            # maj
-            if set("1 3 5".split()).issubset(notes_set):
-                type = "maj"
-            # maj6
-            elif set("1 3 6".split()).issubset(notes_set):
-                type = "maj6"
-            # min
-            elif set("1 b3 5".split()).issubset(notes_set):
-                type = "min"
-            # min6
-            if set("1 b3 6".split()).issubset(notes_set):
-                type = "min6"
-            # dim
-            elif set("1 b3 b5".split()).issubset(notes_set) and not ("5" in notes_set) and not ("6" in notes_set):
-                type = "dim"
-                notes_set.discard("b5")
-            # dim
-            elif set("1 b3 #11".split()).issubset(notes_set) and not ("5" in notes_set) and not ("6" in notes_set):
-                type = "dim"
-                notes_set.discard("#11")
-            # aug
-            elif set("1 3 #5".split()).issubset(notes_set) and not ("5" in notes_set):
-                type = "aug"
-            # aug
-            elif set("1 3 b6".split()).issubset(notes_set) and not ("5" in notes_set):
-                type = "aug"
-            # sus2
-            elif set("1 2".split()).issubset(notes_set) and not ("3" in notes_set) and not ("b3" in notes_set) and not ("4" in notes_set):
-                type = "sus2"
-            # sus4
-            elif set("1 4".split()).issubset(notes_set) and not ("3" in notes_set) and not ("b3" in notes_set) and not ("2" in notes_set):
-                type = "sus4"
-            # sus2/4
-            elif set("1 2 4".split()).issubset(notes_set) and not ("3" in notes_set) and not ("b3" in notes_set):
-                type = "sus2/4"
-            elif not ("2" in notes_set) and not ("4" in notes_set) and not ("3" in notes_set) and not ("b3" in notes_set):
-                type = "sus"
+        name = Chord_Name()
 
         # 7th chords
-        else:
-            # maj7
-            if set("1 3 7".split()).issubset(notes_set) and not ("b5" in notes_set) and not ("#5" in notes_set):
-                type = "maj7"
-            # min7
-            elif set("1 b3 b7".split()).issubset(notes_set) and not ("b5" in notes_set) and not ("#5" in notes_set):
-                type = "min7"
-            # min7
-            elif set("1 3 b7".split()).issubset(notes_set) and not ("b5" in notes_set) and not ("#5" in notes_set):
-                type = "7"
-            # dim7
-            elif set("1 b3 b5 6".split()).issubset(notes_set):
-                type = "dim7"
-            # min7(b5)
-            elif set("1 b3 b5 b7".split()).issubset(notes_set):
-                type = "min7"
-                extensions.append("b5")
-
-            # Extensions
-            if "13" in notes_set:
-                type = type[:-1] + "13"
-            elif "11" in notes_set:
-                type = type[:-1] + "11"
-            elif "9" in notes_set:
-                type = type[:-1] + "9"
-
-            # Sus chords
-            if not ("3" in notes_set) and not ("b3" in notes_set):
-                if ("2" in notes_set) and not ("4" in notes_set):
-                    type += "sus2"
-                elif ("4" in notes_set) and not ("2" in notes_set):
-                    type += "sus4"
-                elif ("4" in notes_set) and ("2" in notes_set):
-                    type += "sus2/4"
+        if ("7" in self.notes) or ("b7" in self.notes):
+            if "7" in self.notes:
+                if "3" in self.notes:
+                    name.type = "maj"
+                    name.extensions = "7"
+                elif "b3" in self.notes:
+                    name.type = "mM"
+                    name.extensions = "7"
                 else:
-                    type += "sus"
+                    if ("2" in self.notes) and not ("4" in self.notes):
+                        name.suspensions = "sus2"
+                    elif ("4" in self.notes) and not ("2" in self.notes):
+                        name.suspensions = "sus4"
+                    else:
+                        name.suspensions = "sus"
+            elif "b7" in self.notes:
+                if "3" in self.notes:
+                    name.type = "dom"
+                    name.extensions = "7"
+                elif "b3" in self.notes:
+                    name.type = "min"
+                    name.extensions = "7"
+                    if "b5" in self.notes:
+                        name.type = "min"
+                        name.extensions = "7"
+                        name.alterations = ["b5"]
 
-        for note in "b9 #11 b5 b13 b6".split():
-            if note in notes_set:
-                extensions.append(note)
+            if "9" in self.notes:
+                if "11" in self.notes:
+                    if "13" in self.notes:
+                        name.extensions = "13"
+                    else:
+                        name.extensions = "11"
+                name.extensions = "9"
 
-        return [type, list(set(extensions))]
+        # Not 7th chords
+        else:
+            if "b3" in self.notes:
+                name.type = "min"
+                if "b5" in self.notes:
+                    name.type = "dim"
+                    if "6" in self.notes:
+                        name.type = "dim"
+                        name.extensions = "7"
+                        if "9" in self.notes:
+                            if "11" in self.notes:
+                                if "13" in self.notes:
+                                    name.extensions = "13"
+                                else:
+                                    name.extensions = "11"
+                            name.extensions = "9"
+            elif "3" in notes_set:
+                name.type = "maj"
+                if "#5" in notes_set:
+                    name.type = "aug"
+            else:
+                if ("2" in self.notes) and not ("4" in self.notes):
+                    name.suspensions = "sus2"
+                elif ("4" in self.notes) and not ("2" in self.notes):
+                    name.suspensions = "sus4"
+                else:
+                    name.suspensions = "sus"
+
+        for note in "1 2 b3 3 4 5 #5 6 7 9 11 13".split():
+            notes_set.discard(note)
+
+        name.alterations = list(notes_set)
+        return name
 
 
 class Key(Musical):
@@ -206,7 +228,7 @@ class Key(Musical):
     def _build_key(self):
         self.relnum = self.num % 100
         self.letter = self.LETTERS[self.relnum]
-        self.octave = self.num//100
+        self.octave = self.num // 100
         self.name = self.letter + str(self.octave)
 
 
@@ -232,13 +254,9 @@ class Piano(Musical):
         self.keys[801] = Key(801)
 
 
-if __name__ == '__main__':
-    chord = Chord("B D F")
+if __name__ == "__main__":
+    chord = Chord("C Eb G Bb")
     print(chord.notes)
     print(chord.root)
     print(chord.type)
     print(chord.names)
-    if chord.type[1]:
-        print(chord.root + chord.type[0] + "(" + ''.join(chord.type[1]) + ")")
-    else:
-        print(chord.root + chord.type[0])
