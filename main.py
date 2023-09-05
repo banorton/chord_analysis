@@ -78,6 +78,7 @@ class Chord(Musical):
             self.names = self.find_names(letters)
 
     def find_names(self, notes):
+        self.root = notes[0]
         chords = []
         roots = notes.copy()
         for root in roots:
@@ -87,10 +88,16 @@ class Chord(Musical):
         names = []
         for i, chord in enumerate(chords):
             type = self.find_type(chord)
-            if type[1]:
-                name_str = roots[i] + type[0] + "(" + ''.join(type[1]) + ")"
+            if i != 0:
+                slash_chord = "/" + str(self.root)
             else:
-                name_str = roots[i] + type[0]
+                slash_chord = ""
+
+            if type[1]:
+                name_str = roots[i] + type[0] + \
+                    "(" + ''.join(type[1]) + ")" + slash_chord
+            else:
+                name_str = roots[i] + type[0] + slash_chord
             names.append(name_str)
         return names
 
@@ -108,7 +115,7 @@ class Chord(Musical):
             if set("1 3 5".split()).issubset(notes_set):
                 type = "maj"
             # maj6
-            if set("1 3 6".split()).issubset(notes_set):
+            elif set("1 3 6".split()).issubset(notes_set):
                 type = "maj6"
             # min
             elif set("1 b3 5".split()).issubset(notes_set):
@@ -119,9 +126,11 @@ class Chord(Musical):
             # dim
             elif set("1 b3 b5".split()).issubset(notes_set) and not ("5" in notes_set) and not ("6" in notes_set):
                 type = "dim"
+                notes_set.discard("b5")
             # dim
             elif set("1 b3 #11".split()).issubset(notes_set) and not ("5" in notes_set) and not ("6" in notes_set):
                 type = "dim"
+                notes_set.discard("#11")
             # aug
             elif set("1 3 #5".split()).issubset(notes_set) and not ("5" in notes_set):
                 type = "aug"
@@ -137,15 +146,20 @@ class Chord(Musical):
             # sus2/4
             elif set("1 2 4".split()).issubset(notes_set) and not ("3" in notes_set) and not ("b3" in notes_set):
                 type = "sus2/4"
+            elif not ("2" in notes_set) and not ("4" in notes_set) and not ("3" in notes_set) and not ("b3" in notes_set):
+                type = "sus"
 
         # 7th chords
         else:
             # maj7
-            if set("1 3 5 7".split()).issubset(notes_set):
+            if set("1 3 7".split()).issubset(notes_set) and not ("b5" in notes_set) and not ("#5" in notes_set):
                 type = "maj7"
             # min7
-            elif set("1 b3 5 b7".split()).issubset(notes_set):
+            elif set("1 b3 b7".split()).issubset(notes_set) and not ("b5" in notes_set) and not ("#5" in notes_set):
                 type = "min7"
+            # min7
+            elif set("1 3 b7".split()).issubset(notes_set) and not ("b5" in notes_set) and not ("#5" in notes_set):
+                type = "7"
             # dim7
             elif set("1 b3 b5 6".split()).issubset(notes_set):
                 type = "dim7"
@@ -154,12 +168,24 @@ class Chord(Musical):
                 type = "min7"
                 extensions.append("b5")
 
+            # Extensions
             if "13" in notes_set:
                 type = type[:-1] + "13"
             elif "11" in notes_set:
                 type = type[:-1] + "11"
             elif "9" in notes_set:
                 type = type[:-1] + "9"
+
+            # Sus chords
+            if not ("3" in notes_set) and not ("b3" in notes_set):
+                if ("2" in notes_set) and not ("4" in notes_set):
+                    type += "sus2"
+                elif ("4" in notes_set) and not ("2" in notes_set):
+                    type += "sus4"
+                elif ("4" in notes_set) and ("2" in notes_set):
+                    type += "sus2/4"
+                else:
+                    type += "sus"
 
         for note in "b9 #11 b5 b13 b6".split():
             if note in notes_set:
@@ -207,7 +233,7 @@ class Piano(Musical):
 
 
 if __name__ == '__main__':
-    chord = Chord("G Bb C E")
+    chord = Chord("B D F")
     print(chord.notes)
     print(chord.root)
     print(chord.type)
