@@ -1,3 +1,6 @@
+import pygame.midi as pgm
+
+
 class Chord_Name:
     def __init__(
         self,
@@ -20,15 +23,20 @@ class Musical:
     LETTERS = ("", "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B")
     RELNUMS = {
         "C": 1,
+        "C#": 2,
         "Db": 2,
         "D": 3,
+        "D#": 4,
         "Eb": 4,
         "E": 5,
         "F": 6,
+        "F#": 6,
         "Gb": 7,
         "G": 8,
+        "G#": 9,
         "Ab": 9,
         "A": 10,
+        "A#": 9,
         "Bb": 11,
         "B": 12,
     }
@@ -209,7 +217,7 @@ class Chord(Musical):
                 else:
                     name.suspensions = "sus"
 
-        for note in "1 2 b3 3 4 5 #5 6 7 9 11 13".split():
+        for note in "1 2 b3 3 4 5 #5 6 b7 7 9 11 13".split():
             notes_set.discard(note)
 
         name.alterations = list(notes_set)
